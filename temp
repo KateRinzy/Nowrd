@@ -1,0 +1,41 @@
+update_camera :: proc(gs: ^GameState) {
+	if gs.menu.in_menu {
+		return
+	}
+
+	player_head_pos := gs.player.pos + ray.Vector3{0, gs.player.height, 0}
+
+	// Simple third person camera that follows the player
+	gs.camState.camera.position = player_head_pos + gs.camState.offset
+	gs.camState.camera.target = player_head_pos
+
+	mouse_delta := ray.GetMouseDelta()
+	fmt.printfln("mouse delta: %v", mouse_delta)
+
+	// Rotate camera around the player
+	// Horizontal rotation
+	gs.camState.offset = ray.Vector3RotateByAxisAngle(
+		gs.camState.offset,
+		{0, 1, 0},
+		-mouse_delta.x * gs.camState.rotation_speed,
+	)
+
+	// Vertical rotation
+	gs.camState.offset = ray.Vector3RotateByAxisAngle(
+		gs.camState.offset,
+		ray.Vector3CrossProduct(gs.camState.camera.up, ray.Vector3Normalize(gs.camState.offset)),
+		-mouse_delta.y * gs.camState.rotation_speed,
+	)
+
+	// Zoom with mouse wheel
+	gs.camState.distance_from_player -= ray.GetMouseWheelMove()
+	if gs.camState.distance_from_player < 1 {
+		gs.camState.distance_from_player = 1
+	}
+
+	// Normalize the offset and set the distance
+	gs.camState.offset =
+		ray.Vector3Normalize(gs.camState.offset) * gs.camState.distance_from_player
+
+	gs.camState.camera.position = player_head_pos + gs.camState.offset
+}

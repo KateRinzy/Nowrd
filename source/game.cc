@@ -1,0 +1,38 @@
+#include "../header/game.hpp"
+
+#include <raylib.h>
+
+#include <string>
+
+#include "../header/ui.hpp"
+
+namespace game {
+Game init_game(std::string playerName) {
+  struct Player p = player::init_player();
+  return {p, playerName, true, false, ui::init()};
+}
+
+void update(Game& g, float deltaTime) {
+  ui::update(g);
+  if (!g.isInMenu) {
+    player::update(g.player, deltaTime);
+    player::updateCamera(g.player, deltaTime);
+  }
+}
+
+void draw(Game& g) {
+  BeginDrawing();
+  if (g.isInMenu) {
+    ClearBackground({40, 40, 40, 255});
+    ui::draw(g);
+  } else {
+    ClearBackground({20, 20, 20, 255});
+    BeginMode3D(g.player.cam.camera);
+    player::draw(g.player);
+
+    DrawGrid(20, 1);
+    EndMode3D();
+  }
+  EndDrawing();
+}
+}  // namespace game
