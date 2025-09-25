@@ -14,6 +14,7 @@ struct Player {
   float rotation;
   float rotationSpeed;
   float speed;
+  float runSpeed;
   Model model;
   Color modelColor = WHITE;
 };
@@ -25,6 +26,7 @@ const float MaxHealth = 100;
 const float Rotation = 0;
 const float RotationSpeed = 7;
 const float Speed = 4;
+const float RunSpeed = 8;
 };  // namespace PlayerDefaults
 
 namespace player {

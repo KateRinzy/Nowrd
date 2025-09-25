@@ -30,7 +30,7 @@ void draw(Game& g) {
     BeginMode3D(g.player.cam.camera);
     player::draw(g.player);
 
-    DrawGrid(20, 1);
+    DrawGrid(200, 1);
     EndMode3D();
   }
   EndDrawing();

@@ -22,6 +22,7 @@ Player init_player() {
               0,
               PlayerDefaults::RotationSpeed,
               PlayerDefaults::Speed,
+              PlayerDefaults::RunSpeed,
               model};
   return p;
 }
@@ -66,13 +67,17 @@ void update(Player &p, float deltaTime) {
 
     p.rotation += deltaAngle * p.rotationSpeed * deltaTime;
   }
-  p.velocity.x = movement.x * p.speed;
-  p.velocity.z = movement.z * p.speed;
+
+  float speed = p.speed;
+  if (IsKeyDown(KEY_LEFT_SHIFT)) {
+    speed = p.runSpeed;
+  }
+  p.velocity.x = movement.x * speed;
+  p.velocity.z = movement.z * speed;
 
   p.velocity.y -= 9.8 * deltaTime;
   p.position += p.velocity * deltaTime;
   float groundLevel = 0;
-  p.position.y -= 9.8 * deltaTime;
   if (p.position.y < groundLevel) {
     p.position.y = groundLevel;
     p.velocity.y = 0;
