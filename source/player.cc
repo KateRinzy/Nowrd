@@ -5,6 +5,7 @@
 #include <cmath>
 #include <print>
 
+#include "../header/world.hpp"
 #include "raymath.h"
 
 namespace player {
@@ -14,6 +15,7 @@ Player init_player() {
   std::string filepath = "assets/base_mesh.glb";
   Model model = LoadModel(filepath.c_str());
   Player p = {PlayerDefaults::Position,
+              PlayerDefaults::Position,
               {0, 0, 0},
               PlayerDefaults::Scale,
               cam,
@@ -32,7 +34,8 @@ void draw(Player &p) {
   return;
 }
 
-void update(Player &p, float deltaTime) {
+void update(Player &p, World &w, float deltaTime) {
+  p.prev_position = p.position;
   Vector3 direction = {0, 0};
   if (IsKeyDown(KeyboardKey::KEY_W)) {
     direction.z -= 1;
@@ -49,9 +52,11 @@ void update(Player &p, float deltaTime) {
 
   Vector3 movement = {0, 0};
   if (direction.x != 0 || direction.z != 0) {
-    Vector3 camForward = Vector3Normalize(p.cam.camera.target - p.cam.camera.position);
+    Vector3 camForward =
+        Vector3Normalize(p.cam.camera.target - p.cam.camera.position);
     Vector3 forward = Vector3Normalize(
-        {p.cam.camera.target.x - p.cam.camera.position.x, 0, p.cam.camera.target.z - p.cam.camera.position.z});
+        {p.cam.camera.target.x - p.cam.camera.position.x, 0,
+         p.cam.camera.target.z - p.cam.camera.position.z});
     Vector3 right = Vector3CrossProduct(forward, p.cam.camera.up);
 
     movement = Vector3Normalize(forward * -direction.z + right * direction.x);
@@ -68,15 +73,19 @@ void update(Player &p, float deltaTime) {
     p.rotation += deltaAngle * p.rotationSpeed * deltaTime;
   }
 
-  float speed = p.speed;
-  if (IsKeyDown(KEY_LEFT_SHIFT)) {
-    speed = p.runSpeed;
-  }
-  p.velocity.x = movement.x * speed;
-  p.velocity.z = movement.z * speed;
+  float targetSpeed = IsKeyDown(KEY_LEFT_SHIFT) ? p.runSpeed : p.speed;
+  p.velocity.x = Lerp(p.velocity.x, movement.x * targetSpeed, 10.f * deltaTime);
+  p.velocity.z = Lerp(p.velocity.z, movement.z * targetSpeed, 10.f * deltaTime);
 
   p.velocity.y -= 9.8 * deltaTime;
-  p.position += p.velocity * deltaTime;
+
+  p.position.x += p.velocity.x * deltaTime;
+  p.position.z += p.velocity.z * deltaTime;
+  world::resolveCollisionsXZ(p, w);
+
+  p.position.y += p.velocity.y * deltaTime;
+  world::resolveCollisionsY(p, w);
+
   float groundLevel = 0;
   if (p.position.y < groundLevel) {
     p.position.y = groundLevel;
@@ -96,16 +105,20 @@ void updateCamera(Player &p, float deltaTime) {
   float lerpSpeed = 10.0f;
 
   // interpolate camera state
-  p.cam.camera.position = Vector3Lerp(p.cam.camera.position, desiredPos, lerpSpeed * deltaTime);
-  p.cam.camera.target = Vector3Lerp(p.cam.camera.target, desiredTarget, lerpSpeed * deltaTime);
+  p.cam.camera.position =
+      Vector3Lerp(p.cam.camera.position, desiredPos, lerpSpeed * deltaTime);
+  p.cam.camera.target =
+      Vector3Lerp(p.cam.camera.target, desiredTarget, lerpSpeed * deltaTime);
 
   // rotation with mouse movement
   Vector2 mouseDelta = GetMouseDelta();
-  p.cam.offset = Vector3RotateByAxisAngle(p.cam.offset, {0, 1, 0}, -mouseDelta.x * p.cam.rotationSpeed);
+  p.cam.offset = Vector3RotateByAxisAngle(p.cam.offset, {0, 1, 0},
+                                          -mouseDelta.x * p.cam.rotationSpeed);
 
-  Vector3 new_offset =
-      Vector3RotateByAxisAngle(p.cam.offset, Vector3CrossProduct(p.cam.camera.up, Vector3Normalize(p.cam.offset)),
-                               -mouseDelta.y * p.cam.rotationSpeed);
+  Vector3 new_offset = Vector3RotateByAxisAngle(
+      p.cam.offset,
+      Vector3CrossProduct(p.cam.camera.up, Vector3Normalize(p.cam.offset)),
+      -mouseDelta.y * p.cam.rotationSpeed);
 
   const float maxAngle = 60.0f * DEG2RAD;
   const float minAngle = 10.0f * DEG2RAD;
@@ -125,8 +138,10 @@ void updateCamera(Player &p, float deltaTime) {
   desiredTarget = p.position;
 
   // lerp again so zoom/rotation also smooth
-  p.cam.camera.position = Vector3Lerp(p.cam.camera.position, desiredPos, lerpSpeed * deltaTime);
-  p.cam.camera.target = Vector3Lerp(p.cam.camera.target, desiredTarget, lerpSpeed * deltaTime);
+  p.cam.camera.position =
+      Vector3Lerp(p.cam.camera.position, desiredPos, lerpSpeed * deltaTime);
+  p.cam.camera.target =
+      Vector3Lerp(p.cam.camera.target, desiredTarget, lerpSpeed * deltaTime);
 }
 
 void debug(Player &p) { return; }

@@ -25,7 +25,7 @@ UI init() {
         return;
       },      //
       WHITE,  //
-      RED     //
+      RED,    //
   });
   currentUI.elements.push_back({
       Rectangle{10, 50, 100, 32},  //
@@ -54,6 +54,23 @@ void update(Game &g) {
   }
 
   if (!g.isInMenu) return;
+
+  float screenWidth = GetScreenWidth();
+  float screenHeight = GetScreenHeight();
+
+  if (g.gui.elements.size() > 1) {
+    // Center buttons below title
+    float titleY = screenHeight / 2.0f;
+    float titleHeight = 42;  // font size from draw()
+
+    // Start button is g.gui.elements[1]
+    g.gui.elements[1].button.x = screenWidth / 2.0f - g.gui.elements[1].button.width / 2.0f;
+    g.gui.elements[1].button.y = titleY + titleHeight;
+
+    // Exit button is g.gui.elements[0]
+    g.gui.elements[0].button.x = screenWidth / 2.0f - g.gui.elements[0].button.width / 2.0f;
+    g.gui.elements[0].button.y = g.gui.elements[1].button.y + g.gui.elements[1].button.height + 10;
+  }
 
   Vector2 mousePosition = GetMousePosition();
   for (auto &e : g.gui.elements) {

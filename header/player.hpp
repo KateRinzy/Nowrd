@@ -4,8 +4,11 @@
 
 #include "camera.hpp"
 
+struct World;
+
 struct Player {
   Vector3 position;
+  Vector3 prev_position;
   Vector3 velocity;
   Vector3 scale;
   Cam cam;
@@ -33,7 +36,7 @@ namespace player {
 Player init_player();
 
 void draw(Player &p);
-void update(Player &p, float deltaTime);
+void update(Player &p, World &w, float deltaTime);
 void updateCamera(Player &p, float deltaTime);
 
 void debug(Player &p);

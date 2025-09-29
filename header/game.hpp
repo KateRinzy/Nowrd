@@ -6,9 +6,11 @@
 
 #include "../header/player.hpp"
 #include "../header/ui.hpp"
+#include "../header/world.hpp"
 
 struct Game {
   Player player;
+  World world;
   std::string playerName;
   bool isInMenu;
   bool shouldExit;

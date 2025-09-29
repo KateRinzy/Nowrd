@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "../extern/raygui.h"
+
 struct Game;
 
 struct Element {
